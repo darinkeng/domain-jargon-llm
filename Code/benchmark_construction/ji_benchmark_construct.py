@@ -1,49 +1,38 @@
 """
-build_ji_dataset.py
-
 Generates the Jargon Identification (JI) binary-classification benchmark
 described in Section 3.3 of the paper. Given a TERM (with no surrounding
 context in the current prompt format), the model must answer whether the
 term is medical jargon (A) or not (B).
-
+ 
 Two input CSVs are required:
   - jargon CSV:     terms classified as jargon (positive examples -> gold A)
   - non-jargon CSV: terms classified as non-jargon (negative examples -> gold B)
-
+ 
 Class counts are balanced before splitting, then divided into a small dev
 split and the main test split. All reported results in the paper use the
 test split only.
-
+ 
 --- On the dev split ---
 The dev split is NOT used for any evaluation reported in the paper. It is
-generated solely because the component decomposition pipeline from Chang et
-al. (2024) -- https://github.com/terarachang/LLMDecomp -- requires both
-a dev and test file to exist on disk for any dataset not in its built-in
-Demo_Dataset_Map. Specifically, decompose.py (LLMDecomp) checks:
-
+generated as a structural artifact of adapting the component decomposition
+pipeline from Chang et al. (2024):
+https://github.com/terarachang/LLMDecomp
+ 
+decompose.py (LLMDecomp) checks:
+ 
     modes = ['test'] if dataset in Demo_Dataset_Map else ['dev', 'test']
+ 
+We added our jargon datasets directly to Demo_Dataset_Map in our local copy
+of LLMDecomp, so decompose.py runs in test-only mode and the dev files
+generated here are never actually consumed by the pipeline. The dev split
+and its associated files are retained in this script for completeness, but
+can safely be ignored.
 
-Since our jargon datasets are custom (not in Demo_Dataset_Map), decompose.py
-iterates over both modes and will crash if dev files are missing. The dev
-files are read purely to cache per-component projections during the
-decomposition run; the component reweighting (Section 5.3) and all accuracy
-numbers reported in the paper are evaluated on the test split.
-
-The --dev_frac default of 0.1 matches what was used to generate the
-benchmark for the paper. Setting --dev_frac 0.0 would disable dev-split
-generation if decompose.py is not needed.
-
---- On EHR context ---
---max_ehr_len and the EHR column are read from the input CSVs but the
-current prompt template (format_example) does NOT include EHR context in
-the generated text -- only the bare TERM is shown to the model, matching
-Appendix G (Table 8) of the paper. The EHR plumbing is kept here only
-because it is still read from the CSV upstream; --max_ehr_len currently
-has no effect. If you want to reintroduce EHR context into the prompt,
-uncomment the relevant line in format_example().
-
+Since the dev files are never consumed, we set --dev_frac 0
+and uses the full balanced pool for testing.
+ 
 Output: JSONL files compatible with decompose.py in terarachang/LLMDecomp.
-
+ 
 Usage:
     python build_ji_dataset.py \
         --input_jargon exp_good_filter_jargon_0.5.csv \
@@ -84,7 +73,7 @@ def format_example(term: str, ehr_text: str, is_jargon: bool) -> dict:
 
     user_content = (
         f"TERM: {term}\n\n"
-        # f"EHR CONTEXT: {ehr_text}\n\n"  # currently unused -- see module docstring
+        f"EHR CONTEXT: {ehr_text}\n\n"  # currently unused -- see module docstring
         f"Is this term a medical jargon (specialized terminology "
         f"a layperson would not understand)?\n\n"
         f"A) Yes\n"
