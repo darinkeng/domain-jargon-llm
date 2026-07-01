@@ -120,3 +120,60 @@ Identifies jargon-sensitive model components that generalize across domains (Sec
 Requires output files from `decompose.py` for all three datasets. See the notebook's Setup section for the exact shell commands.
 
 ---
+## Dataset Description (`data/`)
+
+### Benchmark splits (`data/benchmarks/`)
+
+| File | Task | Split | Examples |
+|---|---|---|---|
+| `ju_test.jsonl` | JU | Test | 1,495 |
+| `ju_train.jsonl` | JU | Train | 4183 |
+| `ji_test.jsonl` | JI | Test | 2,990 |
+| `ji_train.jsonl` | JI | Dev | 1200 |
+| `mat_ji_test.jsonl` | Mat-JI (cross-domain) | Test | 2,990 |
+
+All benchmark files are in JSONL format. Each line is a JSON object with the following fields:
+- `text`: Full prompt in Llama-3.1 chat format (system + user + gold answer)
+- `options`: List of valid option letters (e.g. `["A", "B"]` for JI, `["A", "B", "C", "D", "E"]` for JU)
+- `gold_letter`: The correct answer letter
+
+### Data source and license
+
+The medical jargon data is derived from **README-exp_good** (Yao et al., 2024), distributed under CC-BY-NC 4.0 for research purposes. The Mat-JI benchmark is derived from **MatScholar** (Song et al., 2023), released under the MIT License. **BoolQ** (Clark et al., 2019) is used under CC-BY-SA 3.0. Our derived benchmarks inherit the same access conditions and are intended only for research on model behavior, not for clinical deployment.
+
+---
+
+## Evaluation Pipeline
+
+Our component decomposition and reweighting experiments use the framework from:
+
+> Ting-Yun Chang, Jesse Thomason, and Robin Jia. "When Parts Are Greater Than Sums: Individual LLM Components Can Outperform Full Models." EMNLP 2024.
+
+Code: [terarachang/LLMDecomp](https://github.com/terarachang/LLMDecomp)
+
+We made one modification to the original codebase before running our experiments: adding our jargon datasets to `Demo_Dataset_Map` in `config.py` so that `decompose.py` runs in test-only mode. No other changes to the codebase were required.
+
+### Running `decompose.py` (Section 5.2 — per-component accuracy)
+
+To evaluate per-component accuracy on our benchmarks, pass the dataset name via `--dataset`. The dataset name must match the filename stem of the corresponding JSONL file in LLMDecomp's `data/` directory (e.g. `medical_mcq` for `medical_mcq_test-f1.jsonl`).
+
+```bash
+# JU (Jargon Understanding)
+python decompose.py \
+    --model_name meta-llama/Meta-Llama-3.1-8B-Instruct \
+    --dataset medical_mcq \
+    --format 1 --n_shots 0 --batch_size 8 --seed_list 0
+
+```
+
+Run the same commands with `--model_name TsinghuaC3I/Llama-3.1-8B-UltraMedical` to obtain results for the medically fine-tuned model.
+
+### Running `train_components.py` (Section 5.3 — component reweighting)
+
+To learn component weights for reweighting, update the `model` and `task` variables at the top of `train_components.py` to match the model and dataset you want to reweight, then run the script directly.
+
+---
+
+## Data source and license
+
+The medical jargon data is derived from **README-exp_good** (Yao et al., 2024), distributed under CC-BY-NC 4.0 for research purposes. The Mat-JI benchmark is derived from **MatScholar** (Song et al., 2023), released under the MIT License. **BoolQ** (Clark et al., 2019) is used under CC-BY-SA 3.0. Our derived benchmarks inherit the same access conditions and are intended only for research on model behavior, not for clinical deployment.
