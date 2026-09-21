@@ -1,11 +1,11 @@
 # Domain-Specific Jargon in Large Language Models: A Comparative Analysis between General-Purpose and Specialist Models
 ## Authors
 
-- **Darin Keng**
-  Department of Statistics, University of Chicago, Chicago, Illinois
+- **Darin Keng**<br>
+  Department of Statistics, University of Chicago, Chicago, Illinois<br>
   [dkeng@uchicago.edu](mailto:dkeng@uchicago.edu)
-- **Zhewei Sun**
-  Toyota Technological Institute at Chicago, Chicago, Illinois
+- **Zhewei Sun**<br>
+  Toyota Technological Institute at Chicago, Chicago, Illinois<br>
   [zsun@ttic.edu](mailto:zsun@ttic.edu)
  
 ## Overview
